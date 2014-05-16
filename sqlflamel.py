@@ -15,6 +15,11 @@ class QueryProxy:
 
 		return getattr(self, attr)
 
+# The Database class acts as a base class, and relies on having a sequence called
+# OBJECTS defined somewhere in the namespace resolved by accessing self. This list
+# should contain each ORM object that should exposed in session instances created by
+# this Database. Those tables will be available as attributes, and a new SQLAlchemy
+# query will be issued with each access.
 class Database:
 	def __init__(self, engine):
 		self._engine = sqlalchemy.create_engine(engine)
@@ -43,17 +48,17 @@ class Database:
 		# All of this nastiness combined lets us achieve the final syntactic goal of
 		# the following:
 		#
-		# database = Database("sqlite", "foo.sql3")
+		# database = Database("sqlite://foo.sql3")
 		#
 		# with database.create_context() as db:
 		# 	db.users.all()
 		# 	db,users.filter_by(id=1)
-		# 	db.users.from_jid("cubicool@gmail.com")
+		# 	db.users.my_method(1, 10)
 		#
 		# Notice how we never have to issue db.query(User) explicitly, and also note how,
-		# when db.users.from_jid isn't found in the normal SQLAlchemy query resultobject,
+		# when db.users.my_method isn't found in the normal SQLAlchemy Query results object,
 		# the lookup is then propogated upwards into the Proxy object, where a matching method
-		# is found and used.
+		# IS found and used.
 		#
 		# In each case, accessing db.users actually calls a property function that evaluates
 		# db.query(User) for us, and instantiates a Proxy using those results.
