@@ -10,13 +10,13 @@ noted alchemist Nicholas Flamel who, along with Dumbledore, created the legendar
 Sorcerer's Stone.
 
 SQLFlamel's main purpose is to provide some additional syntactic-sugar when
-working with SQLAlchemy_ directy (and not through some some other wrapper
+working with SQLAlchemy_ directly (and not through some some other wrapper
 library). It accomplishes this by enforcing a few small, unobtrusive API
 constraints on user.
 
 Example
 =======
 
-See the example.py_ file for a heavily documentated example of usage. You can
-look at the small sqlflamel.py_ source file directly.
+See the example.py_ file for a heavily documentated example of usage. The main
+sqlflamel.py_ source file is what you will need to include in your project.
 
