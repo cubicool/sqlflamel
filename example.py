@@ -11,14 +11,7 @@ from sqlalchemy.orm import relationship, backref
 
 Base = sqlalchemy.ext.declarative.declarative_base()
 
-# This is a simple, spectacularly-devisive method of having an implicit constructor
-# for your ORM objects that lets you set the various columns/attributes with
-# keyword argument syntax.
-class KeywordMixin:
-	def __init__(self, **kwargs):
-		self.__dict__.update(kwargs)
-
-class User(KeywordMixin, Base):
+class User(Base):
 	__tablename__ = "users"
 
 	BROADCAST = "on", "off", "online"
@@ -41,7 +34,7 @@ class User(KeywordMixin, Base):
 
 			return self._query.filter_by(node=node, domain=domain).one()
 
-class Hours(KeywordMixin, Base):
+class Hours(Base):
 	__tablename__ = "hours"
 
 	id      = Column(Integer, primary_key=True)
@@ -94,7 +87,7 @@ if __name__ == "__main__":
 		# The following are all the same row in the users table, but since db.users access is
 		# actually a property that issues a query dynamically, they are all unique instances.
 		# This is a double-edged sword! SQLFlamel provides some syntactic sugar, but you need
-		# to be aware of this prevent youself from issuing multiple queries over and over for
+		# to be aware of this to prevent youself from issuing multiple queries over and over for
 		# what is conceptually the same data.
 		print(db.users.all()[0])
 		print(db.users.one())
