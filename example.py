@@ -1,3 +1,7 @@
+# This is an example of SQLFlamel usage in a project that defines two ORM objects
+# and their corresponding tables: User and Hours. A Hours object is a span of time
+# in which the User worked.
+
 import sqlflamel
 import sqlalchemy.ext.declarative
 import datetime
