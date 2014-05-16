@@ -20,3 +20,9 @@ Example
 See the example.py_ file for a heavily documentated example of usage. The main
 sqlflamel.py_ source file is what you will need to include in your project.
 
+NOTICE
+======
+
+If you have any other neat, small SQLAlchemy_ "hacks" that you use when boostrapping
+your own projects, I'd be very interested to see them; if you're willing to share. :)
+
