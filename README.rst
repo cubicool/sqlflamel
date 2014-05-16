@@ -1,13 +1,13 @@
 .. _SQLAlchemy: http://www.sqlalchemy.org
-.. _example.py: http://UNSET
-.. _sqlflamel.py: http://UNSET
+.. _example.py: https://github.com/cubicool/sqlflamel/blob/master/example.py
+.. _sqlflamel.py: https://github.com/cubicool/sqlflamel/blob/master/sqlflamel.py
 
 SQLFlamel
 =========
 
 A simple SQLAlchemy_ bootstrapping/skeleton file. Its name pays homage to the
-noted alchemis Nicholas Flamel, who, along with Dumbledore, created the legendar
-Sorcerer's Stone. :)
+noted alchemist Nicholas Flamel who, along with Dumbledore, created the legendary
+Sorcerer's Stone.
 
 SQLFlamel's main purpose is to provide some additional syntactic-sugar when
 working with SQLAlchemy_ directy (and not through some some other wrapper
