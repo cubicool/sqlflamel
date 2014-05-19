@@ -9,11 +9,11 @@ import contextlib
 # dynamic--syntax.
 class QueryProxy:
     def __init__(self, query):
-        self._query = query
+        self.query = query
 
     def __getattr__(self, attr):
-        if hasattr(self._query, attr):
-            return getattr(self._query, attr)
+        if hasattr(self.query, attr):
+            return getattr(self.query, attr)
 
         return getattr(self, attr)
 
