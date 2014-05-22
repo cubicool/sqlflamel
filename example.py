@@ -6,7 +6,7 @@ import sqlflamel
 import sqlalchemy.ext.declarative
 import datetime
 
-from sqlalchemy import Column, Enum, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship, backref
 
 
@@ -16,12 +16,10 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 class User(Base):
     __tablename__ = "users"
 
-    BROADCAST = "on", "off", "online"
-
     id = Column(Integer, primary_key=True)
     node = Column(String(256), nullable=False)
     domain = Column(String(255), nullable=False)
-    broadcast = Column(Enum(*BROADCAST), default=BROADCAST[0])
+    settings = Column(sqlflamel.JSONEncodedDict, default={})
 
     # Here we derive from QueryProxy and define a single convenience method:
     # from_jid.  This lets us have code like the following:
@@ -35,7 +33,7 @@ class User(Base):
         def from_jid(self, jid):
             node, domain = jid.split("@")
 
-            return self._query.filter_by(node=node, domain=domain).one()
+            return self.query.filter_by(node=node, domain=domain).one()
 
 
 class Hours(Base):
@@ -50,7 +48,7 @@ class Hours(Base):
 
     class Proxy(sqlflamel.QueryProxy):
         def between(self, start, end):
-            return self._query.filter(Hours.start.between(start, end)).all()
+            return self.query.filter(Hours.start.between(start, end)).all()
 
 
 class Database(sqlflamel.Database):
@@ -90,6 +88,10 @@ if __name__ == "__main__":
             end = start + datetime.timedelta(0, 60 * 60 * 8)
 
             db.add(Hours(user_id=user.id, start=start, end=end))
+
+        user.settings["foo"] = {"bar": 1}
+
+        print("Settings:", user.settings)
 
     # Here we just demonstrate some more syntactic sugar, which is really the
     # only thing SQLFlamel currently tries to address. :)
