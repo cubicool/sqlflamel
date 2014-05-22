@@ -53,7 +53,7 @@ class Hours(Base):
 
 class Database(sqlflamel.Database):
     @staticmethod
-    def objects():
+    def types():
         return [User, Hours]
 
 

@@ -23,7 +23,7 @@ class QueryProxy:
 
 
 # The Database class acts as a base class, and relies on having a static method
-# called objects() defined somewhere in the namespace resolved by accessing
+# called types() defined somewhere in the namespace resolved by accessing
 # self. This list should contain each ORM object that should exposed in session
 # instances created by this Database. Those tables will be available as
 # attributes, and a new SQLAlchemy query will be issued with each access.
@@ -31,7 +31,7 @@ class Database:
     def __init__(self, engine):
         self._engine = sqlalchemy.create_engine(engine)
 
-        for obj in self.objects():
+        for obj in self.types():
             obj.metadata.create_all(self._engine)
 
         self._session = sqlalchemy.orm.scoped_session(
@@ -47,7 +47,7 @@ class Database:
 
         # FINALLY! Here is where we combine the Proxy objects above with some
         # really mastferful hackery. This block of code iterates over every ORM
-        # type in the self.objects() sequence and sets a property on the type
+        # type in the self.types() sequence and sets a property on the type
         # itself that lets you issue an SQLAlchemy query simply using
         # attribute-access syntax. Further, that attribute is itself a Proxy
         # object which, when the desired attribute or method isn't found in the
@@ -71,7 +71,7 @@ class Database:
         # In each case, accessing db.users actually calls a property function
         # that evaluates db.query(User) for us, and instantiates a Proxy using
         # those results.
-        for obj in self.objects():
+        for obj in self.types():
             setattr(
                 type(session),
                 obj.__tablename__,
