@@ -107,7 +107,7 @@ class Database:
 #
 # It is so handy and so useful, I decided to go ahead and include
 # it here as well as the other SQLFlamel wrapper objects.
-class JSONEncodedDict(TypeDecorator):
+class JSON(TypeDecorator):
     impl = TEXT
 
     def process_bind_param(self, value, dialect):
@@ -146,4 +146,4 @@ class MutableDict(Mutable, dict):
         self.changed()
 
 
-MutableDict.associate_with(JSONEncodedDict)
+MutableDict.associate_with(JSON)

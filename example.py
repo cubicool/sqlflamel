@@ -19,7 +19,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     node = Column(String(256), nullable=False)
     domain = Column(String(255), nullable=False)
-    settings = Column(sqlflamel.JSONEncodedDict, default={})
+    settings = Column(sqlflamel.JSON, default={})
 
     # Here we derive from QueryProxy and define a single convenience method:
     # from_jid.  This lets us have code like the following:
