@@ -1,6 +1,10 @@
 import sqlalchemy
 import sqlalchemy.orm
 import contextlib
+import json
+
+from sqlalchemy.types import TypeDecorator, TEXT
+from sqlalchemy.ext.mutable import Mutable
 
 
 # This is a base class (intended to be derived from in each ORM object) that
@@ -94,3 +98,52 @@ class Database:
 
         finally:
             session.close()
+
+
+# This code is almost literally a copy/paste from the recipe found
+# on the SQLAlchemy site at this URL:
+#
+# http://docs.sqlalchemy.org/en/rel_0_9/orm/extensions/mutable.html
+#
+# It is so handy and so useful, I decided to go ahead and include
+# it here as well as the other SQLFlamel wrapper objects.
+class JSONEncodedDict(TypeDecorator):
+    impl = TEXT
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+
+        return value
+
+
+class MutableDict(Mutable, dict):
+    @classmethod
+    def coerce(cls, key, value):
+        if not isinstance(value, MutableDict):
+            if isinstance(value, dict):
+                return MutableDict(value)
+
+            return Mutable.coerce(key, value)
+
+        else:
+            return value
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+
+        self.changed()
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+
+        self.changed()
+
+
+MutableDict.associate_with(JSONEncodedDict)
