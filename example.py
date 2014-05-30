@@ -26,8 +26,16 @@ class User(Base):
     # user = User.Proxy(db.query(Users)).from_jid()
     #
     # HOWEVER! That syntax alone isn't any more or less unweildy than the
-    # default SQLAlchemy syntax, so we combine this technique with our custom
-    # Database class.
+    # default SQLAlchemy syntax, so we leverage additional functionality
+    # provided by the sqlflamel.Database object, which requires that each
+    # ORM type it works with define an internal class simply called "Proxy."
+    #
+    # Using these two design idioms in conjuction, we achieve a great deal
+    # of additional syntax simplification, which is discussed more thoroghly
+    # later on. For now, accept that when using SQLFlamel, your own
+    # ORM classes will need to define a Proxy class inheriting from
+    # QueryProxy, even if no additional convenience methods are initially
+    # provided (or needed).
     class Proxy(sqlflamel.QueryProxy):
         def from_jid(self, jid):
             node, domain = jid.split("@")
@@ -96,7 +104,7 @@ if __name__ == "__main__":
     with database.create_context() as db:
         # The following are all the same row in the users table, but since
         # db.users access is actually a property that issues a query
-        # dynamically, they are all unique instances.  This is a double-edged
+        # dynamically, they are all unique instances. This is a double-edged
         # sword! SQLFlamel provides some syntactic sugar, but you need to be
         # aware of this to prevent youself from issuing multiple queries over
         # and over for what is conceptually the same data.
@@ -114,4 +122,4 @@ if __name__ == "__main__":
         # from_jid above, it is used when SQLFlamel determines that between()
         # doesn't exist on the Query object returned by SQLAlchemy.
         for hours in db.hours.between(then, now):
-            print(hours.start, hours.end)
+            print(hours.start, hours.end, hours.user)

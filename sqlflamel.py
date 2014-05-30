@@ -16,11 +16,11 @@ from sqlalchemy.ext.mutable import Mutable
 # For example, if an ORM type BlogPost needs to create a relationship with a
 # single instance of a different ORM type User, BlogPost could call this
 # function with the User type, the attribute name corresponding to User's
-# primary key, and the name of BlogPost table. The first returned value will be
-# an SQLAlchemy Column type, and will create the relationship binding between
-# BlogPost BACK to User. The second returned value will return an SQLAlchemy
-# realtionship type, which will provide the user with attribute-like access to
-# the User instance directly.
+# primary key, and the name of the BlogPost table. The first returned value
+# will be an SQLAlchemy Column type, and will create the relationship binding
+# between BlogPost BACK to User. The second returned value will be an actual
+# SQLAlchemy realtionship, which will provide a BlogPost instance with
+# attribute-like access directly to the foreign User instance.
 def relationship(cls, attr, tablename):
     fk = getattr(cls, attr)
 
@@ -37,9 +37,9 @@ def relationship(cls, attr, tablename):
     )
 
 
-# This is a base class (intended to be derived from in each ORM object) that
+# This is a base class (required to be derived from in each ORM object) that
 # acts as a kind of proxy between the SQLAlchemy query results object and the
-# the client interface allowing for much cleaner--though still necessarily
+# the client interface, allowing for much cleaner--though still necessarily
 # dynamic--syntax.
 class QueryProxy:
     def __init__(self, query):
@@ -53,10 +53,11 @@ class QueryProxy:
 
 
 # The Database class acts as a base class, and relies on having a static method
-# called types() defined somewhere in the namespace resolved by accessing
-# self. This list should contain each ORM object that should exposed in session
-# instances created by this Database. Those tables will be available as
-# attributes, and a new SQLAlchemy query will be issued with each access.
+# called types() defined somewhere in the namespace resolved by accessing self.
+# This list returned by this static method should contain each ORM object that
+# will be exposed in session instances created by this Database. Those tables
+# will be available as attributes, and a new SQLAlchemy query will be issued
+# with each access.
 class Database:
     def __init__(self, engine):
         self._engine = sqlalchemy.create_engine(engine)
@@ -89,8 +90,10 @@ class Database:
         #
         # database = Database("sqlite://foo.sql3")
         #
-        # with database.create_context() as db: db.users.all()
-        # db,users.filter_by(id=1) db.users.my_method(1, 10)
+        # with database.create_context() as db:
+        #   db.users.all()
+        #   db,users.filter_by(id=1)
+        #   db.users.my_method(1, 10)
         #
         # Notice how we never have to issue db.query(User) explicitly, and also
         # note how, when db.users.my_method isn't found in the normal
