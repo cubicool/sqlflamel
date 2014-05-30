@@ -7,6 +7,36 @@ from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.ext.mutable import Mutable
 
 
+# This helper function wraps the most common kind of relationship creation. It
+# accepts an existing ORM type as the first argument, a string representing the
+# column name to match against, and finally the name of the table (where it is
+# usually safe to use the locally scoped __tablename__) to which the SQLAlchemy
+# backref will be made.
+#
+# For example, if an ORM type BlogPost needs to create a relationship with a
+# single instance of a different ORM type User, BlogPost could call this
+# function with the User type, the attribute name corresponding to User's
+# primary key, and the name of BlogPost table. The first returned value will be
+# an SQLAlchemy Column type, and will create the relationship binding between
+# BlogPost BACK to User. The second returned value will return an SQLAlchemy
+# realtionship type, which will provide the user with attribute-like access to
+# the User instance directly.
+def relationship(cls, attr, tablename):
+    fk = getattr(cls, attr)
+
+    return (
+        sqlalchemy.Column(
+            sqlalchemy.Integer,
+            sqlalchemy.ForeignKey(fk),
+            nullable=False
+        ),
+        sqlalchemy.orm.relationship(
+            cls,
+            backref=sqlalchemy.orm.backref(tablename, order_by=fk)
+        )
+    )
+
+
 # This is a base class (intended to be derived from in each ORM object) that
 # acts as a kind of proxy between the SQLAlchemy query results object and the
 # the client interface allowing for much cleaner--though still necessarily
@@ -124,17 +154,6 @@ class JSON(TypeDecorator):
 
 
 class MutableDict(Mutable, dict):
-    @classmethod
-    def coerce(cls, key, value):
-        if not isinstance(value, MutableDict):
-            if isinstance(value, dict):
-                return MutableDict(value)
-
-            return Mutable.coerce(key, value)
-
-        else:
-            return value
-
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
 
@@ -143,7 +162,18 @@ class MutableDict(Mutable, dict):
     def __delitem__(self, key):
         dict.__delitem__(self, key)
 
-        self.changed()
+        self._parent.changed()
+
+    @classmethod
+    def coerce(self, key, value):
+        if not isinstance(value, MutableDict):
+            if isinstance(value, dict):
+                return MutableDict(value)
+
+            return Mutable.coerce(key, value)
+
+        else:
+            return value
 
 
 MutableDict.associate_with(JSON)

@@ -6,8 +6,7 @@ import sqlflamel
 import sqlalchemy.ext.declarative
 import datetime
 
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Column, Integer, String, DateTime
 
 
 Base = sqlalchemy.ext.declarative.declarative_base()
@@ -40,11 +39,10 @@ class Hours(Base):
     __tablename__ = "hours"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
     start = Column(DateTime)
     end = Column(DateTime)
 
-    user = relationship(User, backref=backref(__tablename__, order_by=id))
+    user_id, user = sqlflamel.relationship(User, "id", __tablename__)
 
     class Proxy(sqlflamel.QueryProxy):
         def between(self, start, end):
@@ -61,7 +59,7 @@ if __name__ == "__main__":
     # A sqlflamel Database object handles all of the syntactical binding
     # between the user-defined ORM objects and the sessions it creates and
     # manages.
-    database = Database("sqlite://")
+    database = Database("sqlite:///test.sql")
 
     # Add a User and commit it right away.
     with database.create_context() as db:
