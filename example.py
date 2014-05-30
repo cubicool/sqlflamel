@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # A sqlflamel Database object handles all of the syntactical binding
     # between the user-defined ORM objects and the sessions it creates and
     # manages.
-    database = Database("sqlite:///test.sql")
+    database = Database("sqlite://")
 
     # Add a User and commit it right away.
     with database.create_context() as db:
