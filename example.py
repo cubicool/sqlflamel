@@ -50,11 +50,16 @@ class Hours(Base):
     start = Column(DateTime)
     end = Column(DateTime)
 
-    user_id, user = sqlflamel.relationship(User, "id", __tablename__)
+    # This is one possible way of creating our relationship, but it is more
+    # difficult to use. Let's prefer the easier method below.
+    # user_id, user = sqlflamel.relationship(User, User.id, __tablename__, id)
 
     class Proxy(sqlflamel.QueryProxy):
         def between(self, start, end):
             return self.query.filter(Hours.start.between(start, end)).all()
+
+
+sqlflamel.create_relationship(Hours, User)
 
 
 class Database(sqlflamel.Database):
@@ -123,3 +128,11 @@ if __name__ == "__main__":
         # doesn't exist on the Query object returned by SQLAlchemy.
         for hours in db.hours.between(then, now):
             print(hours.start, hours.end, hours.user)
+
+        # Finally, demonstate that our call to create_realtionship did indeed
+        # create the proper backref so that every User instnace has an "hours"
+        # attribute that links to every appropriate row in the referenced
+        # table.
+        user = db.users.from_jid("cubicool@github.com")
+
+        print(user.hours)

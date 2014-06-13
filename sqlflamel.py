@@ -8,33 +8,71 @@ from sqlalchemy.ext.mutable import Mutable
 
 
 # This helper function wraps the most common kind of relationship creation. It
-# accepts an existing ORM type as the first argument, a string representing the
-# column name to match against, and finally the name of the table (where it is
-# usually safe to use the locally scoped __tablename__) to which the SQLAlchemy
-# backref will be made.
+# accepts an existing ORM type as the first argument, the column to match
+# against using that type, the table name of the locally scoped ORM type (where
+# it is usually safe to use __tablename__) to which the SQLAlchemy backref will
+# be made, and finally the column by which the backref will be matched against.
 #
 # For example, if an ORM type BlogPost needs to create a relationship with a
 # single instance of a different ORM type User, BlogPost could call this
 # function with the User type, the attribute name corresponding to User's
-# primary key, and the name of the BlogPost table. The first returned value
-# will be an SQLAlchemy Column type, and will create the relationship binding
-# between BlogPost BACK to User. The second returned value will be an actual
-# SQLAlchemy realtionship, which will provide a BlogPost instance with
-# attribute-like access directly to the foreign User instance.
-def relationship(cls, attr, tablename):
-    fk = getattr(cls, attr)
-
+# primary key, the name of the BlogPost table, and a BlogPost column to sort
+# the backref by. The first returned value will be an SQLAlchemy Column type,
+# and will create the relationship binding between BlogPost BACK to User. The
+# second returned value will be an actual SQLAlchemy realtionship, which will
+# provide a BlogPost instance with attribute-like access directly to the
+# foreign User instance.
+def relationship(cls, foreign_key, tablename, order_by):
     return (
         sqlalchemy.Column(
             sqlalchemy.Integer,
-            sqlalchemy.ForeignKey(fk),
+            sqlalchemy.ForeignKey(foreign_key),
             nullable=False
         ),
         sqlalchemy.orm.relationship(
             cls,
-            backref=sqlalchemy.orm.backref(tablename, order_by=fk)
+            backref=sqlalchemy.orm.backref(tablename, order_by=order_by)
         )
     )
+
+
+# This is likely the relationship function you will find yourself most commonly
+# using. It creates a relationship between the two passed in ORM types based on
+# the specified attribute (which defaults to "id").
+#
+# The first argument will have an attribute corresponding to the name of the
+# second argument (in lower case), and another corresponding to the name plus
+# and underscore and the name of the attribute. FOR EXAMPLE (since there's no
+# way you could possibly follow that):
+#
+# class User:
+#   id = Column(Integer, primary_key=True)
+#
+# class BlogPost:
+#   __tablename__ = "blog_posts"
+#   id = Column(Integer, primary_key=True)
+#
+# sqlflamel.create_relationship(BlogPost, User)
+#
+# After this function call, the BlogPost ORM type will have the attributes
+# "user" and "user_id", and the User ORM type will have an attribute called
+# "blog_posts". We defaulted to using the attribute "id", but could just as
+# easily have used any other attribute name they both shared.
+#
+# This is a hugely common relationship when using SQLAlchemy, and SQLFlamel
+# tries to sipmlify it.
+def create_relationship(cls, foreign_cls, attr="id"):
+    fc_attr, fc = relationship(
+        foreign_cls,
+        getattr(foreign_cls, attr),
+        cls.__tablename__,
+        getattr(cls, attr)
+    )
+
+    fc_name = foreign_cls.__name__.lower()
+
+    setattr(cls, fc_name + "_" + attr, fc_attr)
+    setattr(cls, fc_name, fc)
 
 
 # This is a base class (required to be derived from in each ORM object) that
@@ -52,12 +90,12 @@ class QueryProxy:
         return getattr(self, attr)
 
 
-# The Database class acts as a base class, and relies on having a static method
-# called types() defined somewhere in the namespace resolved by accessing self.
-# This list returned by this static method should contain each ORM object that
-# will be exposed in session instances created by this Database. Those tables
-# will be available as attributes, and a new SQLAlchemy query will be issued
-# with each access.
+# The Database class acts purely as a base class, and relies on having a static
+# method called types() defined somewhere in the namespace resolved by
+# accessing self. This list returned by this static method should contain each
+# ORM object that will be exposed in session instances created by this
+# Database. Those tables will be available as attributes, and a new SQLAlchemy
+# query will be issued with each access.
 class Database:
     def __init__(self, engine):
         self._engine = sqlalchemy.create_engine(engine)
@@ -113,10 +151,11 @@ class Database:
 
         return session
 
-    # Creates a context-compatible object that can be used with the special
-    # "with" keyword.  This is almost always what you want to use. :)
     @contextlib.contextmanager
     def create_context(self):
+        """Creates a context-compatible object that can be used with the
+        special "with" keyword. This is almost always what you want to use."""
+
         session = self.create_session()
 
         try:
