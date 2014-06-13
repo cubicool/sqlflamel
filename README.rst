@@ -12,7 +12,7 @@ Sorcerer's Stone.
 SQLFlamel's main purpose is to provide some additional syntactic-sugar when
 working with SQLAlchemy_ directly (and not through some some other wrapper
 library). It accomplishes this by enforcing a few small, unobtrusive API
-constraints on user.
+constraints on the user.
 
 Example
 =======
