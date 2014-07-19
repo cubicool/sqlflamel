@@ -28,7 +28,9 @@ class User(Base):
     # HOWEVER! That syntax alone isn't any more or less unweildy than the
     # default SQLAlchemy syntax, so we leverage additional functionality
     # provided by the sqlflamel.Database object, which requires that each
-    # ORM type it works with define an internal class simply called "Proxy."
+    # ORM type it works with define an internal class simply called "Proxy"
+    # (although it will create an default empty one for you if you do not
+    # explicitly).
     #
     # Using these two design idioms in conjuction, we achieve a great deal
     # of additional syntax simplification, which is discussed more thoroghly

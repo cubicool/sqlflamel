@@ -79,6 +79,14 @@ def create_relationship(cls, foreign_cls, attr="id"):
 # acts as a kind of proxy between the SQLAlchemy query results object and the
 # the client interface, allowing for much cleaner--though still necessarily
 # dynamic--syntax.
+#
+# A instance of this object is create for each query issued by the client.
+# More specifically, it is the result typically returned by:
+#
+# q = db.query(MyORMType)
+#
+# ...which is the point at which we inject our custom methods OR allow method
+# calls to pass through in the class SQLAlchemy style.
 class QueryProxy:
     def __init__(self, query):
         self.query = query
@@ -143,10 +151,17 @@ class Database:
         # that evaluates db.query(User) for us, and instantiates a Proxy using
         # those results.
         for obj in self.types():
+            if hasattr(obj, "Proxy"):
+                proxy = getattr(obj, "Proxy")
+
+            else:
+                proxy = QueryProxy
+
+            # THIS CODE WILL BLOW YOUR MIND.
             setattr(
                 type(session),
                 obj.__tablename__,
-                property(lambda self, obj=obj: obj.Proxy(self.query(obj)))
+                property(lambda self, obj=obj, proxy=proxy: proxy(self.query(obj)))
             )
 
         return session
